@@ -1,0 +1,102 @@
+name: Update versions
+
+env:
+  MONITORED_FILES: "pyproject.toml"
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    name: Initialize builds
+    outputs:
+      changed_addons: ${{ steps.changed_addons.outputs.addons }}
+      changed: ${{ steps.changed_addons.outputs.changed }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6.0.2
+        
+      - name: Get changed files
+        id: changed_files
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Find add-on directories
+        id: addons
+        uses: home-assistant/actions/helpers/find-addons@master
+
+      - name: Get changed add-ons
+        id: changed_addons
+        run: |
+          declare -a changed_addons
+          for addon in ${{ steps.addons.outputs.addons }}; do
+              if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
+              for file in ${{ env.MONITORED_FILES }}; do
+                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
+                      if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
+                      changed_addons+=("\"${addon}\",");
+                      fi
+                  fi
+              done
+              fi
+          done
+
+          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
+
+          if [[ -n ${changed} ]]; then
+              echo "Changed add-ons: $changed";
+              echo "changed=true" >> $GITHUB_OUTPUT;
+              echo "addons=[$changed]" >> $GITHUB_OUTPUT;
+          else
+              echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
+          fi
+
+  build:
+    needs: init
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: needs.init.outputs.changed == 'true'
+    name: Update ${{ matrix.addon }} build files
+    strategy:
+      max-parallel: 1
+      matrix:
+        addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
+    outputs:
+      package: ${{ steps.get_version.outputs.package }}
+      version: ${{ steps.get_version.outputs.version }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Get package version from pyproject.toml
+        id: get_version
+        run: |
+          echo "package=$(grep 'wyoming' ./${{ matrix.addon }}/pyproject.toml  | cut -d'"' -f2 | cut -d'=' -f1)" >> $GITHUB_OUTPUT
+          echo "version=$(grep 'wyoming' ./${{ matrix.addon }}/pyproject.toml  | cut -d'"' -f2 | cut -d'=' -f3)" >> $GITHUB_OUTPUT
+
+      - name: Update config.yaml
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: ./${{ matrix.addon }}/config.yaml
+          propertyPath: 'version'
+          value: "${{ steps.get_version.outputs.version }}"
+          commitChange: false
+
+      - name: Update changelog
+        run: |
+          wget https://raw.githubusercontent.com/hugobloem/${{ steps.get_version.outputs.package }}/refs/tags/v${{ steps.get_version.outputs.version }}/CHANGELOG.md --output-document ./${{ matrix.addon }}/CHANGELOG.md
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'Hugo Bloem'
+          git config --global user.email 'hugobloem@users.noreply.github.com'
+          git commit -am "Update version"
+          git push

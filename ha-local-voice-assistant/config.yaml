@@ -41,4 +41,4 @@ devices:
 homeassistant: 2024.1.0
 ports:
   '6053/tcp': 6053
-image: ghcr.io/zaz969/local-voice-assistant:{arch}
+image: ghcr.io/zaz969/ha-local-voice-assistant:{arch}

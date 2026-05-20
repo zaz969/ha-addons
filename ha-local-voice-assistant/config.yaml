@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: "1.0.0"
 slug: local_linux_voice_assistant
 name: Local Satellite Voice Assistant
 description: Local voice assistant with wake word detection using linux-voice-assistant

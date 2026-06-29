@@ -1,5 +1,5 @@
 ---
-version: "1.0.0"
+version: "1.1.12"
 slug: ha_local_voice_assistant
 name: Local Satellite Voice Assistant
 description: Local voice assistant with wake word detection using linux-voice-assistant
@@ -16,24 +16,30 @@ map:
 options:
   wake_model: "okay_nabu"
   stop_model: "stop"
-  auto_gain: 0
+  mic_volume: 100
+  mic_auto_gain: 0
   mic_noise_suppression: 0
   wakeup_sound: ""
   timer_finished_sound: ""
   processing_sound: ""
   mute_sound: ""
   unmute_sound: ""
+  continue_conversation_delay: 0
+  timer_max_ring_seconds: 60
   enable_debug: false
 schema:
   wake_model: str
   stop_model: str
-  auto_gain: int(0,31)
+  mic_volume: int(0,100)
+  mic_auto_gain: int(0,31)
   mic_noise_suppression: int(0,4)
   wakeup_sound: str?
   timer_finished_sound: str?
   processing_sound: str?
   mute_sound: str?
   unmute_sound: str?
+  continue_conversation_delay: int(0,10000)
+  timer_max_ring_seconds: int(0,900)
   enable_debug: bool
 audio: true
 devices:

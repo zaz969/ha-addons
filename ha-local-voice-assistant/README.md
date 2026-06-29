@@ -29,7 +29,7 @@ Part of the [Year of Voice](https://www.home-assistant.io/blog/2022/12/20/year-o
 
 ## Configuration
 
-All configuration is optional - the addon auto-detects most settings. You can customize via the addon settings UI.
+All configuration is optional - the addon auto-detects most settings. You can customize via the addon settings UI and via the ESPHome integration configuration
 
 ### Audio Device Selection
 Audio input (microphone) and output (speaker) devices are selectable via dropdown menus on the addon configuration page before starting the addon.

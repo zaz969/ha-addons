@@ -14,11 +14,7 @@ boot: auto
 map:
   - share:rw
 options:
-  wake_model: "okay_nabu"
   stop_model: "stop"
-  mic_volume: 100
-  mic_auto_gain: 0
-  mic_noise_suppression: 0
   wakeup_sound: ""
   timer_finished_sound: ""
   processing_sound: ""
@@ -28,11 +24,7 @@ options:
   timer_max_ring_seconds: 60
   enable_debug: false
 schema:
-  wake_model: str
   stop_model: str
-  mic_volume: int(0,100)
-  mic_auto_gain: int(0,31)
-  mic_noise_suppression: int(0,4)
   wakeup_sound: str?
   timer_finished_sound: str?
   processing_sound: str?
